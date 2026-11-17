@@ -1,18 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { AuthContext } from './useAuth'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { api, getToken, setToken } from '../api'
+import { api, ApiError, getToken, setToken } from '../api'
 import type { User } from '../types'
-
-interface AuthValue {
-  user: User | null
-  loading: boolean
-  login: (email: string, password: string) => Promise<void>
-  signup: (name: string, email: string, password: string) => Promise<void>
-  logout: () => void
-  setUser: (user: User | null) => void
-}
-
-const AuthContext = createContext<AuthValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -23,7 +13,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!getToken()) return
     api<{ user: User }>('/auth/me')
       .then((data) => setUser(data.user))
-      .catch(() => setToken(null))
+      .catch((error: unknown) => {
+        if (error instanceof ApiError && error.status === 401) setToken(null)
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -57,8 +49,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
-export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>')
-  return ctx
-}

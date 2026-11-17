@@ -3,7 +3,7 @@ import { GoogleMap, Marker, useJsApiLoader } from '@react-google-maps/api'
 import type { LatLng } from '../types'
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined
-const START_CENTER = { lat: 20, lng: 0 }
+const START_CENTER = { lat: 41.7151, lng: 44.8271 }
 
 interface Props {
   value: LatLng | null
@@ -36,7 +36,7 @@ function MapView({ value, onChange }: Props) {
       <GoogleMap
         mapContainerStyle={{ width: '100%', height: '300px' }}
         center={START_CENTER}
-        zoom={2}
+        zoom={7}
         onLoad={(map) => { mapRef.current = map }}
         onClick={(e) => e.latLng && onChange({ lat: e.latLng.lat(), lng: e.latLng.lng() })}
       >

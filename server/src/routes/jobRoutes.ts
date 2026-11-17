@@ -1,10 +1,11 @@
+import { parseJob, InputError } from '../validation'
 import { Router } from 'express'
 import fs from 'fs'
 import path from 'path'
 import mongoose from 'mongoose'
 import { Job } from '../models/Job'
 import { requireAuth, optionalAuth } from '../middleware/requireAuth'
-import { upload, UPLOAD_DIR } from '../upload'
+import { upload, UPLOAD_DIR, saveImages } from '../upload'
 
 const router = Router()
 
@@ -29,6 +30,11 @@ router.get('/', optionalAuth, async (req, res) => {
   const city = str(req.query.city)
   const category = str(req.query.category)
   const q = str(req.query.q)
+  if (city.length > 80 || q.length > 200 || category.length > 40) throw new InputError('Search is too long')
+  const pageText = req.query.page ?? '1'
+  if (typeof pageText !== 'string' || !/^[1-9]\d{0,5}$/.test(pageText)) throw new InputError('Invalid page')
+  const page = Number(pageText)
+  const pageSize = 50
 
   const filter: Record<string, unknown> = { status: 'open' }
   if (city) filter.city = new RegExp(escapeRegex(city), 'i')
@@ -38,11 +44,12 @@ router.get('/', optionalAuth, async (req, res) => {
     filter.$or = [{ title: rx }, { description: rx }]
   }
 
-  const query = Job.find(filter).sort({ createdAt: -1 }).limit(50).populate('postedBy', 'name')
+  const query = Job.find(filter).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize + 1).populate('postedBy', 'name')
   // contact details are only for logged-in users
   if (!req.userId) query.select('-phone -email')
 
-  res.json({ jobs: await query })
+  const jobs = await query
+  res.json({ jobs: jobs.slice(0, pageSize), page, hasMore: jobs.length > pageSize })
 })
 
 // GET /api/jobs/mine/posted
@@ -76,48 +83,10 @@ router.get('/:id', optionalAuth, async (req, res) => {
 // POST /api/jobs  (multipart form: fields + up to 6 "images")
 router.post('/', requireAuth, upload.array('images', 6), async (req, res) => {
   const files = (req.files as Express.Multer.File[] | undefined) ?? []
-  const images = files.map((f) => `/uploads/${f.filename}`)
-  const b = (req.body ?? {}) as Record<string, string | undefined>
-
-  const required = ['title', 'description', 'phone', 'email', 'city', 'street', 'price'] as const
-  const missing = required.filter((k) => !b[k]?.trim())
-  if (missing.length) {
-    removeFiles(images)
-    res.status(400).json({ error: `Missing: ${missing.join(', ')}` })
-    return
-  }
-
-  const price = Number(b.price)
-  if (!Number.isFinite(price) || price < 0) {
-    removeFiles(images)
-    res.status(400).json({ error: 'Price must be a positive number' })
-    return
-  }
-
-  const lat = Number(b.lat)
-  const lng = Number(b.lng)
-  const hasPin = !!b.lat && !!b.lng && Number.isFinite(lat) && Number.isFinite(lng)
-  const startDate = b.startDate ? new Date(b.startDate) : undefined
-
-  // TODO (payments): charge the poster here (e.g. Stripe checkout) and only create
-  // the job - or set paid: true - once the payment succeeds.
+  const fields = parseJob(req.body ?? {})
+  const images = await saveImages(files)
   try {
-    const job = await Job.create({
-      title: b.title,
-      description: b.description,
-      category: b.category || 'Other',
-      images,
-      phone: b.phone,
-      email: b.email,
-      city: b.city,
-      street: b.street,
-      location: hasPin ? { lat, lng } : undefined,
-      price,
-      currency: ['USD', 'EUR', 'GEL'].includes(b.currency ?? '') ? b.currency : 'USD',
-      priceType: b.priceType === 'hourly' ? 'hourly' : 'fixed',
-      startDate: startDate && !isNaN(startDate.getTime()) ? startDate : undefined,
-      postedBy: req.userId,
-    })
+    const job = await Job.create({ ...fields, images, postedBy: req.userId })
     res.status(201).json({ job })
   } catch (err) {
     removeFiles(images)

@@ -7,13 +7,19 @@ function Renderer(){
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const background = "grey"
     const forGround = "#00ff00"
-    let speed = 1
-    let targetspeed = 1
     const slow = 0.2
 
     useEffect(() => {
-        const canvas :any = canvasRef.current;
-        const ctx = canvas.getContext("2d");
+        const element = canvasRef.current;
+        if (!element) return;
+        const context = element.getContext("2d");
+        if (!context) return;
+        const canvas = element;
+        const ctx = context;
+        let speed = 1;
+        let targetspeed = 1;
+        let frameId = 0;
+        let previousTime: number | undefined;
         console.log(canvas)
         console.log(canvasRef)
 
@@ -32,13 +38,6 @@ function Renderer(){
             ctx.fillRect(0,0,canvas.width,canvas.height)
 
         }
-        function point({x,y}: point){
-            const s = 20
-
-            ctx.fillStyle = forGround
-            ctx.fillRect(x - s/2,y - s/2 ,s,s)
-        }
-
         function screen(p : point) : point{
             return{
                     x: ((p.x + 1)/2)*canvas.width,
@@ -76,7 +75,7 @@ function Renderer(){
             }
         }
 
-        function line(p1: any,p2: any){
+        function line(p1: point,p2: point){
             ctx.lineWidth = 10
             ctx.strokeStyle = forGround
             ctx.beginPath();
@@ -128,15 +127,16 @@ function Renderer(){
             // { x: 0, y: 0.6, z: 0 },
         ]
         
-        const FPS = 240;
+
         let dz = 2
         let angle = 0
         
-        function frame(){
+        function frame(time: number){
             speed += (targetspeed - speed) * 0.1
-            const dt = 1/FPS;
+            const dt = previousTime === undefined ? 0 : Math.min((time - previousTime) / 1000, 0.05);
+            previousTime = time;
             dz += 0;
-            angle +=Math.PI*dt;
+            angle +=Math.PI*dt*speed;
             clear()
             for(const f of fs){
                 for(let i = 0; i < f.length; i++){
@@ -146,11 +146,16 @@ function Renderer(){
                 
                 }
             }
-            setTimeout(frame, 1000/FPS)
+            frameId = requestAnimationFrame(frame)
         }
-        setTimeout(frame, 1000/FPS);
+        frameId = requestAnimationFrame(frame);
 
 
+        return () => {
+            cancelAnimationFrame(frameId);
+            canvas.removeEventListener("pointerenter", onEnter);
+            canvas.removeEventListener("pointerleave", onLeave);
+        };
     }, [])
 
 

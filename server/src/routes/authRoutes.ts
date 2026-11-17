@@ -1,11 +1,18 @@
 import { Router } from 'express'
 import type { Response } from 'express'
 import bcrypt from 'bcryptjs'
+import { rateLimit } from 'express-rate-limit'
 import jwt from 'jsonwebtoken'
 import { User, toPublicUser } from '../models/User'
 import { requireAuth } from '../middleware/requireAuth'
 
 const router = Router()
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, limit: 30,
+  standardHeaders: 'draft-8', legacyHeaders: false,
+  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+})
+router.use(['/login', '/register'], authLimiter)
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function signToken(userId: string) {
@@ -30,7 +37,7 @@ router.post('/register', async (req, res) => {
   if (typeof password !== 'string' || password.length < 6) {
     return fail(res, 400, 'Password must be at least 6 characters', 'password')
   }
-  if (password.length > 72) return fail(res, 400, 'Password is too long (72 characters max)', 'password')
+  if (Buffer.byteLength(password, 'utf8') > 72) return fail(res, 400, 'Password is too long (72 UTF-8 bytes max)', 'password')
 
   const cleanEmail = email.toLowerCase().trim()
 
@@ -66,10 +73,10 @@ router.post('/login', async (req, res) => {
   if (typeof password !== 'string' || !password) return fail(res, 400, 'Please enter your password', 'password')
 
   const user = await User.findOne({ email: email.toLowerCase().trim() })
-  if (!user) return fail(res, 401, 'No account found with this email', 'email')
+  if (!user) return fail(res, 401, 'Invalid email or password')
 
   const passwordOk = await bcrypt.compare(password, user.passwordHash)
-  if (!passwordOk) return fail(res, 401, 'Wrong password', 'password')
+  if (!passwordOk) return fail(res, 401, 'Invalid email or password')
 
   console.log('[auth] OK login success for user id:', user.id)
   res.json({ token: signToken(user.id), user: toPublicUser(user) })

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 
 // One component for both /login and /signup
 function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
@@ -33,7 +33,8 @@ function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
   }
 
   return (
-    <div>
+    <div className="auth-page panel">
+      <p className="eyebrow">WELCOME TO WAIMUSHAVE</p>
       <h1>{mode === 'login' ? 'Log in' : 'Sign up'}</h1>
 
       <form onSubmit={handleSubmit}>
@@ -63,9 +64,9 @@ function AuthPage({ mode }: { mode: 'login' | 'signup' }) {
           </label>
         </div>
 
-        {error && <p>{error}</p>}
+        {error && <p className="notice" role="alert">{error}</p>}
 
-        <button type="submit" disabled={submitting}>
+        <button className="primary" type="submit" disabled={submitting}>
           {mode === 'login' ? 'Log in' : 'Create account'}
         </button>
       </form>

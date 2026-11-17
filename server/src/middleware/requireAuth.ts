@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken'
 import type { NextFunction, Request, Response } from 'express'
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace -- Express request augmentation
   namespace Express {
     interface Request {
       userId?: string
@@ -14,7 +15,7 @@ function readUserId(req: Request): string | null {
   if (!header?.startsWith('Bearer ')) return null
   try {
     const payload = jwt.verify(header.slice(7), process.env.JWT_SECRET as string) as { userId: string }
-    return payload.userId
+    return typeof payload.userId === 'string' && /^[a-f0-9]{24}$/i.test(payload.userId) ? payload.userId : null
   } catch {
     return null
   }

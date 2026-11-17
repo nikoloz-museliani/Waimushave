@@ -43,11 +43,11 @@ export async function api<T = unknown>(path: string, options: RequestInit = {}):
 
   // read as text first so a non-JSON reply (e.g. an empty proxy error) doesn't crash us
   const text = await res.text()
-  let data: { error?: string; field?: string } = {}
+  let data: { error?: string; field?: string }
   try {
     data = text ? JSON.parse(text) : {}
   } catch {
-    console.error(`[api] reply was not JSON (first 200 chars):`, text.slice(0, 200))
+    throw new ApiError('The server returned an invalid response. Please try again.', res.status)
   }
 
   console.log(`[api] <- ${res.status} ${method} ${url}`, res.ok ? 'OK' : `ERROR: ${data.error ?? '(no message)'}`)

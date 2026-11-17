@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import LocationPicker from './LocationPicker'
 import type { LatLng } from '../types'
 
 const MAX_IMAGES = 6
 const CATEGORIES = ['Cleaning', 'Repairs', 'Moving', 'Delivery', 'Gardening', 'Painting', 'Tutoring', 'Other']
-const CURRENCIES = ['USD', 'EUR', 'GEL']
+const CURRENCIES = ['GEL', 'USD', 'EUR']
 
 function PostJob() {
   const { user } = useAuth()
@@ -23,7 +23,7 @@ function PostJob() {
     city: user?.city ?? '',
     street: '',
     price: '',
-    currency: 'USD',
+    currency: 'GEL',
     priceType: 'fixed',
     startDate: '',
   })
@@ -76,10 +76,12 @@ function PostJob() {
   }
 
   return (
-    <div>
+    <div className="form-page">
+      <p className="eyebrow">FIND A HELPING HAND</p>
       <h1>Post a job</h1>
+      <p className="muted">Tell people what you need, where, and what you’ll pay.</p>
 
-      <form onSubmit={handleSubmit}>
+      <form className="panel job-form" onSubmit={handleSubmit}>
         <h2>Job details</h2>
         <div>
           <label>
@@ -167,9 +169,9 @@ function PostJob() {
         </div>
         <LocationPicker value={pin} onChange={setPin} />
 
-        {error && <p>{error}</p>}
+        {error && <p className="notice" role="alert">{error}</p>}
 
-        <button type="submit" disabled={submitting}>
+        <button className="primary" type="submit" disabled={submitting}>
           {submitting ? 'Posting...' : 'Post job'}
         </button>
       </form>

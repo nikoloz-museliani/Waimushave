@@ -18,7 +18,7 @@ const jobSchema = new Schema(
 
     // price
     price: { type: Number, required: true, min: 0 },
-    currency: { type: String, default: 'USD' },
+    currency: { type: String, enum: ['GEL', 'USD', 'EUR'], default: 'GEL' },
     priceType: { type: String, enum: ['fixed', 'hourly'], default: 'fixed' },
 
     startDate: Date,

@@ -38,8 +38,7 @@ app.use('/api/jobs', jobRoutes)
 app.use('/api/users', userRoutes)
 
 // last-resort error handler (Express 5 forwards async errors here automatically)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+app.use((err: Error & { status?: number }, _req: Request, res: Response, _next: NextFunction) => {
   console.error('[server error]', err)
   const status =
     err.name === 'MulterError' || err.name === 'ValidationError' || err.name === 'CastError'
