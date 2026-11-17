@@ -60,3 +60,13 @@ To install this update: retain your own server/.env and server/uploads, replace 
 Email verification, bot challenges, payments and in-app messaging are not enabled in this update. No account is labelled verified. Public profiles contain self-reported names, cities and bios only.
 
 Desktop and 390px phone layouts were visually inspected using disposable sample data; sample pages are not included in this archive. Real database/browser job acceptance still needs an integration check with test accounts.
+
+## November 17: readable components and preferences
+
+Start with docs/AUTH_AND_ROUTES.md for the explained authentication/request flow and route table. Page/component styles live beside their TSX files; theme tokens and shared primitives live in src/styles/global.css. App.css only contains shell layout. Run npm run format to keep code consistently readable.
+
+New pages: /my-jobs (your listings), /accepted-jobs (taken/completed work), /profile (account details and appearance). The avatar opens Profile. The GEO/ENG switch defaults to Georgian; both language and light/dark preference persist per browser.
+
+Read docs/SEO.md for production URL setup and the remaining server-rendering/hosting requirements. The app is still a client-rendered React SPA, not a complete SSR migration.
+
+Install: keep server/.env and server/uploads, run npm ci in both the root and server, then run npm run dev in each directory. No database migration is required. No live email verification, payments or messaging are added.

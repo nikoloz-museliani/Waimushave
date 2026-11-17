@@ -1,0 +1,169 @@
+/* Styles owned by JobCard. Responsive overrides stay in this file. */
+.job-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  transition: 0.5s;
+}
+.job-card.compact {
+  border: 0;
+  border-radius: 10px;
+  box-shadow: 0px 5px 15px var(--ink);
+}
+.job-card.compact:hover{
+  transform: translateY(-5px);
+  box-shadow: 0px 10px 15px var(--ink);
+  transition: 0.5s;
+}
+.job-cover {
+  position: relative;
+  display: block;
+  aspect-ratio: 16/9;
+  background: var(--soft);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.job-cover > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cover-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--muted);
+}
+.cover-placeholder > span:first-child {
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.cover-placeholder > span:last-child {
+  font-size: 12px;
+}
+.price-tag {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  background: var(--paper);
+  border-radius: 5px;
+  padding: 7px 9px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.compact .job-body {
+  padding: 14px;
+}
+.job-body {
+  padding: 18px;
+}
+.job-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 9px;
+}
+.status {
+  background: var(--soft);
+  border-radius: 4px;
+  padding: 4px 7px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.job-body h3 {
+  margin-bottom: 6px;
+}
+.person-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 14px;
+}
+.job-body p,
+.accepted-person strong {
+  overflow-wrap: anywhere;
+}
+.accepted-person {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 14px;
+  margin-top: 18px;
+  background: var(--soft);
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 5px;
+}
+.accepted-person .eyebrow {
+  margin: 0;
+}
+.accepted-person a {
+  font-size: 13px;
+  text-decoration: underline;
+}
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.card-actions p {
+  flex-basis: 100%;
+}
+.contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.photo-strip {
+  display: flex;
+  overflow: auto;
+  gap: 8px;
+  margin-top: 14px;
+}
+.photo-strip img {
+  height: 90px;
+  max-width: none;
+  border-radius: 6px;
+}
+.photo-strip a {
+  flex-shrink: 0;
+}
+.detail-page .job-cover {
+  max-height: 440px;
+}
+@media (max-width: 700px) {
+  .job-body {
+    padding: 16px;
+  }
+}
+@media (max-width: 700px) {
+  .compact .job-body {
+    padding: 12px 0;
+  }
+}
+@media (max-width: 700px) {
+  .contact-row .button {
+    flex: 1;
+  }
+}
+@media (max-width: 700px) {
+  .photo-strip img {
+    height: 75px;
+  }
+}

@@ -1,3 +1,5 @@
+import './PostJob.css'
+import { usePreferences } from '../context/usePreferences'
 import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -7,10 +9,20 @@ import LocationPicker from './LocationPicker'
 import type { LatLng } from '../types'
 
 const MAX_IMAGES = 6
-const CATEGORIES = ['Cleaning', 'Repairs', 'Moving', 'Delivery', 'Gardening', 'Painting', 'Tutoring', 'Other']
+const CATEGORIES = [
+  'Cleaning',
+  'Repairs',
+  'Moving',
+  'Delivery',
+  'Gardening',
+  'Painting',
+  'Tutoring',
+  'Other',
+]
 const CURRENCIES = ['GEL', 'USD', 'EUR']
 
 function PostJob() {
+  const { t } = usePreferences()
   const { user } = useAuth()
   const navigate = useNavigate()
 
@@ -67,7 +79,7 @@ function PostJob() {
     try {
       // TODO (payments): charge the poster here before/while creating the job
       await api('/jobs', { method: 'POST', body: data })
-      navigate('/profile')
+      navigate('/my-jobs')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not post job')
     } finally {
@@ -77,28 +89,33 @@ function PostJob() {
 
   return (
     <div className="form-page">
-      <p className="eyebrow">FIND A HELPING HAND</p>
-      <h1>Post a job</h1>
-      <p className="muted">Tell people what you need, where, and what you’ll pay.</p>
+      <p className="eyebrow">{t('FIND A HELPING HAND')}</p>
+      <h1>{t('Post a job')}</h1>
+      <p className="muted">{t('Tell people what you need, where, and what you’ll pay.')}</p>
 
       <form className="panel job-form" onSubmit={handleSubmit}>
-        <h2>Job details</h2>
+        <h2>{t('Job details')}</h2>
         <div>
           <label>
-            Title <input name="title" value={form.title} onChange={update} maxLength={120} required />
+            {t('Title')}
+            <input name="title" value={form.title} onChange={update} maxLength={120} required />
           </label>
         </div>
         <div>
           <label>
-            Category{' '}
+            {t('Category')}{' '}
             <select name="category" value={form.category} onChange={update}>
-              {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {t(c)}
+                </option>
+              ))}
             </select>
           </label>
         </div>
         <div>
           <label>
-            Description
+            {t('Description')}
             <br />
             <textarea
               name="description"
@@ -113,66 +130,96 @@ function PostJob() {
         </div>
         <div>
           <label>
-            Date needed (optional){' '}
+            {t('Date needed (optional)')}{' '}
             <input type="date" name="startDate" value={form.startDate} onChange={update} />
           </label>
         </div>
 
-        <h2>Photos (up to {MAX_IMAGES})</h2>
-        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onChange={addImages} />
+        <h2>
+          {t('Photos (up to')} {MAX_IMAGES})
+        </h2>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          multiple
+          onChange={addImages}
+        />
         <div>
           {previews.map((src, i) => (
-            <div key={src} style={{ display: 'inline-block' }}>
+            <div key={src} className="image-preview">
               <img src={src} alt="" width={120} />
               <br />
-              <button type="button" onClick={() => removeImage(i)}>Remove</button>
+              <button type="button" onClick={() => removeImage(i)}>
+                {t('Remove')}
+              </button>
             </div>
           ))}
         </div>
 
-        <h2>Price</h2>
+        <h2>{t('Price')}</h2>
         <div>
           <label>
-            Price <input type="number" name="price" min={0} step="0.01" value={form.price} onChange={update} required />
+            {t('Price')}
+            <input
+              type="number"
+              name="price"
+              min={0}
+              step="0.01"
+              value={form.price}
+              onChange={update}
+              required
+            />
           </label>{' '}
           <select name="currency" value={form.currency} onChange={update}>
-            {CURRENCIES.map((c) => <option key={c}>{c}</option>)}
+            {CURRENCIES.map((c) => (
+              <option key={c} value={c}>
+                {t(c)}
+              </option>
+            ))}
           </select>{' '}
           <select name="priceType" value={form.priceType} onChange={update}>
-            <option value="fixed">Fixed price</option>
-            <option value="hourly">Per hour</option>
+            <option value="fixed">{t('Fixed price')}</option>
+            <option value="hourly">{t('Per hour')}</option>
           </select>
         </div>
 
-        <h2>Contact</h2>
+        <h2>{t('Contact')}</h2>
         <div>
           <label>
-            Phone <input type="tel" name="phone" value={form.phone} onChange={update} required />
+            {t('Phone')}
+            <input type="tel" name="phone" value={form.phone} onChange={update} required />
           </label>
         </div>
         <div>
           <label>
-            Email <input type="email" name="email" value={form.email} onChange={update} required />
+            {t('Email')}
+            <input type="email" name="email" value={form.email} onChange={update} required />
           </label>
         </div>
 
-        <h2>Location</h2>
+        <h2>{t('Location')}</h2>
         <div>
           <label>
-            City <input name="city" value={form.city} onChange={update} required />
+            {t('City')}
+            <input name="city" value={form.city} onChange={update} required />
           </label>
         </div>
         <div>
           <label>
-            Street <input name="street" value={form.street} onChange={update} required />
+            {t('Street')}
+            <input name="street" value={form.street} onChange={update} required />
           </label>
         </div>
         <LocationPicker value={pin} onChange={setPin} />
 
-        {error && <p className="notice" role="alert">{error}</p>}
+        {error && (
+          <p className="notice" role="alert">
+            {t(error)}
+          </p>
+        )}
 
         <button className="primary" type="submit" disabled={submitting}>
-          {submitting ? 'Posting...' : 'Post job'}
+          {t(submitting ? 'Posting...' : 'Post a job')}
         </button>
       </form>
     </div>

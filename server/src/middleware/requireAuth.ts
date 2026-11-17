@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken'
 import type { NextFunction, Request, Response } from 'express'
 
+// Add one optional property to Express’s Request type. Middleware fills it only
+// after verification; handlers must not accept a userId from the request body.
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace -- Express request augmentation
   namespace Express {
@@ -10,12 +12,19 @@ declare global {
   }
 }
 
+// A JWT is signed, not encrypted. It contains an id, never a password. verify()
+// checks the signature and expiry; decode() alone would be unsafe here.
 function readUserId(req: Request): string | null {
   const header = req.headers.authorization
   if (!header?.startsWith('Bearer ')) return null
   try {
-    const payload = jwt.verify(header.slice(7), process.env.JWT_SECRET as string) as { userId: string }
-    return typeof payload.userId === 'string' && /^[a-f0-9]{24}$/i.test(payload.userId) ? payload.userId : null
+    // JWT_SECRET stays on the server. Publishing it would let anyone forge tokens.
+    const payload = jwt.verify(header.slice(7), process.env.JWT_SECRET as string) as {
+      userId: string
+    }
+    return typeof payload.userId === 'string' && /^[a-f0-9]{24}$/i.test(payload.userId)
+      ? payload.userId
+      : null
   } catch {
     return null
   }
@@ -29,6 +38,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     return
   }
   req.userId = userId
+  // next() hands control to the following middleware or route handler.
   next()
 }
 
@@ -36,5 +46,6 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
 export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
   const userId = readUserId(req)
   if (userId) req.userId = userId
+  // next() hands control to the following middleware or route handler.
   next()
 }

@@ -7,14 +7,20 @@ import { User, toPublicUser } from '../models/User'
 import { requireAuth } from '../middleware/requireAuth'
 
 const router = Router()
+// Limit expensive password hashing/comparison attempts per IP. A multi-server
+// production deployment should replace the in-memory store with a shared store.
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, limit: 30,
-  standardHeaders: 'draft-8', legacyHeaders: false,
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
   message: { error: 'Too many attempts. Please try again in 15 minutes.' },
 })
 router.use(['/login', '/register'], authLimiter)
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// Seven days preserves the existing session duration. The token proves who the
+// caller is; each job route must still decide what that caller may do.
 function signToken(userId: string) {
   return jwt.sign({ userId }, process.env.JWT_SECRET as string, { expiresIn: '7d' })
 }
@@ -30,15 +36,20 @@ router.post('/register', async (req, res) => {
   const { name, email, password } = req.body ?? {}
   console.log('[auth] register attempt for:', typeof email === 'string' ? email : '(no email sent)')
 
-  if (typeof name !== 'string' || !name.trim()) return fail(res, 400, 'Please enter your name', 'name')
+  if (typeof name !== 'string' || !name.trim())
+    return fail(res, 400, 'Please enter your name', 'name')
   if (name.trim().length > 80) return fail(res, 400, 'Name is too long (80 characters max)', 'name')
-  if (typeof email !== 'string' || !email.trim()) return fail(res, 400, 'Please enter your email', 'email')
-  if (!EMAIL_RE.test(email.trim())) return fail(res, 400, 'This email address does not look valid', 'email')
+  if (typeof email !== 'string' || !email.trim())
+    return fail(res, 400, 'Please enter your email', 'email')
+  if (!EMAIL_RE.test(email.trim()))
+    return fail(res, 400, 'This email address does not look valid', 'email')
   if (typeof password !== 'string' || password.length < 6) {
     return fail(res, 400, 'Password must be at least 6 characters', 'password')
   }
-  if (Buffer.byteLength(password, 'utf8') > 72) return fail(res, 400, 'Password is too long (72 UTF-8 bytes max)', 'password')
+  if (Buffer.byteLength(password, 'utf8') > 72)
+    return fail(res, 400, 'Password is too long (72 UTF-8 bytes max)', 'password')
 
+  // Normalize before both lookup and insert so casing does not create duplicates.
   const cleanEmail = email.toLowerCase().trim()
 
   console.log('[auth] checking if email is already used...')
@@ -51,6 +62,7 @@ router.post('/register', async (req, res) => {
     const user = await User.create({
       name: name.trim(),
       email: cleanEmail,
+      // Store a salted, one-way hash. Never persist the raw password.
       passwordHash: await bcrypt.hash(password, 10),
     })
     console.log('[auth] OK user created, id:', user.id)
@@ -69,12 +81,16 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body ?? {}
   console.log('[auth] login attempt for:', typeof email === 'string' ? email : '(no email sent)')
 
-  if (typeof email !== 'string' || !email.trim()) return fail(res, 400, 'Please enter your email', 'email')
-  if (typeof password !== 'string' || !password) return fail(res, 400, 'Please enter your password', 'password')
+  if (typeof email !== 'string' || !email.trim())
+    return fail(res, 400, 'Please enter your email', 'email')
+  if (typeof password !== 'string' || !password)
+    return fail(res, 400, 'Please enter your password', 'password')
 
   const user = await User.findOne({ email: email.toLowerCase().trim() })
   if (!user) return fail(res, 401, 'Invalid email or password')
 
+  // bcrypt.compare checks the submitted password against the stored hash.
+  // Both unknown email and wrong password use the same public error message.
   const passwordOk = await bcrypt.compare(password, user.passwordHash)
   if (!passwordOk) return fail(res, 401, 'Invalid email or password')
 

@@ -18,7 +18,8 @@ export async function normalizeImage(buffer: Buffer) {
   try {
     const decoder = sharp(buffer, { limitInputPixels: 20_000_000, failOn: 'warning' })
     const metadata = await decoder.metadata()
-    if (!['jpeg', 'png', 'webp', 'gif'].includes(metadata.format ?? '')) throw new Error('Unsupported image')
+    if (!['jpeg', 'png', 'webp', 'gif'].includes(metadata.format ?? ''))
+      throw new Error('Unsupported image')
     return await decoder.rotate().webp({ quality: 85 }).toBuffer()
   } catch {
     throw new InputError('Upload a valid JPG, PNG, WEBP or GIF image (maximum 20 megapixels).')
@@ -36,7 +37,11 @@ export async function saveImages(files: Express.Multer.File[]) {
     }
     return urls
   } catch (error) {
-    await Promise.all(urls.map((url) => fs.promises.unlink(path.join(UPLOAD_DIR, path.basename(url))).catch(() => {})))
+    await Promise.all(
+      urls.map((url) =>
+        fs.promises.unlink(path.join(UPLOAD_DIR, path.basename(url))).catch(() => {}),
+      ),
+    )
     throw error
   }
 }

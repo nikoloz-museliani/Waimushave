@@ -1,0 +1,40 @@
+.toggle-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.toggle-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.toggle-label.active {
+  color: var(--ink);
+}
+button.toggle-track {
+  min-height: 28px;
+  height: 28px;
+  width: 48px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: var(--soft);
+  display: block;
+  flex-shrink: 0;
+}
+.toggle-thumb {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: transform 150ms ease;
+}
+.toggle-track[aria-checked='true'] .toggle-thumb {
+  transform: translateX(18px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .toggle-thumb {
+    transition: none;
+  }
+}

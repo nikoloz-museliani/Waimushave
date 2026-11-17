@@ -3,6 +3,7 @@ import express from 'express'
 import type { NextFunction, Request, Response } from 'express'
 import cors from 'cors'
 import mongoose from 'mongoose'
+import seoRoutes from './routes/seoRoutes'
 import authRoutes from './routes/authRoutes'
 import jobRoutes from './routes/jobRoutes'
 import userRoutes from './routes/userRoutes'
@@ -22,17 +23,25 @@ app.use(express.json())
 app.use('/api', (req: Request, res: Response, next: NextFunction) => {
   const start = Date.now()
   res.on('finish', () => {
-    console.log(`[http] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now() - start}ms)`)
+    console.log(
+      `[http] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now() - start}ms)`,
+    )
   })
   next()
 })
 
 // quick check: open http://localhost:5173/api/health in the browser
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, database: mongoose.connection.readyState === 1 ? 'connected' : 'NOT connected' })
+  res.json({
+    ok: true,
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'NOT connected',
+  })
 })
 
 app.use('/uploads', express.static(UPLOAD_DIR)) // uploaded job photos
+// These are JSON API prefixes. React routes in src/App.tsx are a different
+// layer: visiting /profile renders a page; that page calls /api/users/me.
+app.use(seoRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/jobs', jobRoutes)
 app.use('/api/users', userRoutes)
@@ -44,7 +53,9 @@ app.use((err: Error & { status?: number }, _req: Request, res: Response, _next: 
     err.name === 'MulterError' || err.name === 'ValidationError' || err.name === 'CastError'
       ? 400
       : err.status || 500
-  res.status(status).json({ error: status === 500 ? 'Server error - see the server terminal for details' : err.message })
+  res.status(status).json({
+    error: status === 500 ? 'Server error - see the server terminal for details' : err.message,
+  })
 })
 
 console.log('Connecting to MongoDB...')

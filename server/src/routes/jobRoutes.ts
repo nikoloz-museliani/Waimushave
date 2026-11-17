@@ -7,6 +7,8 @@ import { Job } from '../models/Job'
 import { requireAuth, optionalAuth } from '../middleware/requireAuth'
 import { upload, UPLOAD_DIR, saveImages } from '../upload'
 
+// index.ts mounts this router at /api/jobs. Therefore "/mine/posted" below
+// means GET /api/jobs/mine/posted, not a React page URL.
 const router = Router()
 
 // reject malformed ids before they reach the database
@@ -30,9 +32,11 @@ router.get('/', optionalAuth, async (req, res) => {
   const city = str(req.query.city)
   const category = str(req.query.category)
   const q = str(req.query.q)
-  if (city.length > 80 || q.length > 200 || category.length > 40) throw new InputError('Search is too long')
+  if (city.length > 80 || q.length > 200 || category.length > 40)
+    throw new InputError('Search is too long')
   const pageText = req.query.page ?? '1'
-  if (typeof pageText !== 'string' || !/^[1-9]\d{0,5}$/.test(pageText)) throw new InputError('Invalid page')
+  if (typeof pageText !== 'string' || !/^[1-9]\d{0,5}$/.test(pageText))
+    throw new InputError('Invalid page')
   const page = Number(pageText)
   const pageSize = 50
 
@@ -44,7 +48,11 @@ router.get('/', optionalAuth, async (req, res) => {
     filter.$or = [{ title: rx }, { description: rx }]
   }
 
-  const query = Job.find(filter).sort({ createdAt: -1, _id: -1 }).skip((page - 1) * pageSize).limit(pageSize + 1).populate('postedBy', 'name')
+  const query = Job.find(filter)
+    .sort({ createdAt: -1, _id: -1 })
+    .skip((page - 1) * pageSize)
+    .limit(pageSize + 1)
+    .populate('postedBy', 'name')
   // contact details are only for logged-in users
   if (!req.userId) query.select('-phone -email')
 
@@ -53,6 +61,8 @@ router.get('/', optionalAuth, async (req, res) => {
 })
 
 // GET /api/jobs/mine/posted
+// Identity comes from requireAuth. Filtering in the database prevents a user
+// from requesting someone else’s dashboard by changing frontend state.
 router.get('/mine/posted', requireAuth, async (req, res) => {
   const jobs = await Job.find({ postedBy: req.userId })
     .sort({ createdAt: -1 })
@@ -69,6 +79,8 @@ router.get('/mine/accepted', requireAuth, async (req, res) => {
 })
 
 // GET /api/jobs/:id
+// Fixed routes appear before /:id so words such as 'mine' are never read as ids.
+// populate replaces stored user ids with only the requested public name fields.
 router.get('/:id', optionalAuth, async (req, res) => {
   const query = Job.findById(req.params.id).populate('postedBy acceptedBy', 'name')
   if (!req.userId) query.select('-phone -email')
@@ -81,6 +93,8 @@ router.get('/:id', optionalAuth, async (req, res) => {
 })
 
 // POST /api/jobs  (multipart form: fields + up to 6 "images")
+// Authentication runs before file processing, and input validation runs before
+// writing files/database records. Clean up files if database creation fails.
 router.post('/', requireAuth, upload.array('images', 6), async (req, res) => {
   const files = (req.files as Express.Multer.File[] | undefined) ?? []
   const fields = parseJob(req.body ?? {})
@@ -96,7 +110,8 @@ router.post('/', requireAuth, upload.array('images', 6), async (req, res) => {
 
 // POST /api/jobs/:id/accept
 router.post('/:id/accept', requireAuth, async (req, res) => {
-  // one atomic update, so two people can't accept the same job
+  // The availability and ownership checks belong inside the atomic update.
+  // A separate read followed by an update would allow a two-user race.
   const job = await Job.findOneAndUpdate(
     { _id: req.params.id, status: 'open', postedBy: { $ne: req.userId } },
     { status: 'in_progress', acceptedBy: req.userId },
@@ -111,6 +126,8 @@ router.post('/:id/accept', requireAuth, async (req, res) => {
 })
 
 // POST /api/jobs/:id/complete  (poster or the person who accepted it)
+// Existing product rule: either participant may complete an in-progress job.
+// Keep this explicit; employer approval would require another state transition.
 router.post('/:id/complete', requireAuth, async (req, res) => {
   const job = await Job.findOneAndUpdate(
     {
@@ -130,8 +147,13 @@ router.post('/:id/complete', requireAuth, async (req, res) => {
 })
 
 // DELETE /api/jobs/:id  (poster only, only while still open)
+// Ownership and status are part of the delete query, not merely button visibility.
 router.delete('/:id', requireAuth, async (req, res) => {
-  const job = await Job.findOneAndDelete({ _id: req.params.id, postedBy: req.userId, status: 'open' })
+  const job = await Job.findOneAndDelete({
+    _id: req.params.id,
+    postedBy: req.userId,
+    status: 'open',
+  })
   if (!job) {
     res.status(404).json({ error: 'Job not found, or it was already accepted' })
     return

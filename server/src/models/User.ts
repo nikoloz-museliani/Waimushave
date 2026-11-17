@@ -26,5 +26,12 @@ export const User = model<IUser>('User', userSchema)
 
 // What we send to the browser (never the password hash)
 export function toPublicUser(u: HydratedDocument<IUser>) {
-  return { _id: u.id as string, name: u.name, email: u.email, phone: u.phone, city: u.city, bio: u.bio }
+  return {
+    _id: u.id as string,
+    name: u.name,
+    email: u.email,
+    phone: u.phone,
+    city: u.city,
+    bio: u.bio,
+  }
 }

@@ -1,0 +1,30 @@
+/* Styles owned by JobsPage. Responsive overrides stay in this file. */
+.refresh-note {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 28px 0;
+}
+.tabs button:disabled {
+  opacity: 1;
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+@media (max-width: 700px) {
+  .tabs button {
+    flex: 1;
+    font-size: 12px;
+  }
+}
+.jobs-page section > h2 {
+  margin: 24px 0 18px;
+}
+.jobs-page section > p {
+  margin-bottom: 20px;
+}

@@ -1,0 +1,24 @@
+/* Styles owned by AuthPage. Responsive overrides stay in this file. */
+.auth-page {
+  max-width: 460px;
+  margin: 36px auto;
+}
+.auth-page h1 {
+  margin-bottom: 24px;
+}
+.auth-page form > div,
+.profile-editor > div {
+  margin-bottom: 20px;
+}
+.auth-page form > button {
+  width: 100%;
+  margin: 4px 0 22px;
+}
+.auth-page a {
+  text-decoration: underline;
+}
+@media (max-width: 700px) {
+  .auth-page {
+    margin: 16px auto;
+  }
+}

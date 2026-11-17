@@ -1,0 +1,19 @@
+/* Styles owned by JobDetails. Responsive overrides stay in this file. */
+.detail-page {
+  max-width: 850px;
+  margin: auto;
+}
+.detail-page h3 {
+  font-size: 26px;
+}
+.detail-page .panel p {
+  margin-top: 16px;
+}
+.detail-page .panel h1 {
+  margin-top: 20px;
+}
+@media (max-width: 700px) {
+  .detail-page h3 {
+    font-size: 22px;
+  }
+}

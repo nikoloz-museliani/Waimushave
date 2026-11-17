@@ -6,6 +6,8 @@ import { requireAuth } from '../middleware/requireAuth'
 const router = Router()
 
 // PUT /api/users/me  - edit my profile
+// /me always refers to the verified caller. Whitelist editable fields so a
+// client cannot overwrite passwordHash, email, or account identity.
 router.put('/me', requireAuth, async (req, res) => {
   const { name, phone, city, bio } = req.body ?? {}
   const update: Record<string, string> = {}
@@ -24,6 +26,7 @@ router.put('/me', requireAuth, async (req, res) => {
 })
 
 // GET /api/users/:id  - public profile of someone else (no email/phone)
+// Public profiles intentionally omit contact details and password hashes.
 router.get('/:id', async (req, res) => {
   if (!mongoose.isValidObjectId(req.params.id)) {
     res.status(400).json({ error: 'Invalid user id' })

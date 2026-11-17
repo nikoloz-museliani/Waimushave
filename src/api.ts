@@ -19,6 +19,9 @@ export class ApiError extends Error {
   }
 }
 
+// Keep HTTP mechanics out of components. Every component uses this one wrapper.
+// Authorization: Bearer carries the signed JWT; Express verifies it. A browser
+// route guard or a user id in React state cannot authorize a database change.
 // Small fetch wrapper: adds the login token, handles JSON + FormData, logs what happens.
 export async function api<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
   const method = options.method ?? 'GET'
@@ -38,7 +41,10 @@ export async function api<T = unknown>(path: string, options: RequestInit = {}):
     res = await fetch(url, { ...options, headers })
   } catch (err) {
     console.error(`[api] X ${method} ${url} - could not reach the server`, err)
-    throw new ApiError('Cannot reach the server. Check your internet connection and that the backend is running.', 0)
+    throw new ApiError(
+      'Cannot reach the server. Check your internet connection and that the backend is running.',
+      0,
+    )
   }
 
   // read as text first so a non-JSON reply (e.g. an empty proxy error) doesn't crash us
@@ -50,7 +56,10 @@ export async function api<T = unknown>(path: string, options: RequestInit = {}):
     throw new ApiError('The server returned an invalid response. Please try again.', res.status)
   }
 
-  console.log(`[api] <- ${res.status} ${method} ${url}`, res.ok ? 'OK' : `ERROR: ${data.error ?? '(no message)'}`)
+  console.log(
+    `[api] <- ${res.status} ${method} ${url}`,
+    res.ok ? 'OK' : `ERROR: ${data.error ?? '(no message)'}`,
+  )
 
   if (!res.ok) {
     const message =
