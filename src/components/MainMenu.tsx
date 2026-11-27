@@ -54,7 +54,8 @@ export default function MainMenu() {
   }, [query, user?._id, authLoading, retry])
   function change(next: URLSearchParams) {
     setLoading(true)
-    setParams(next)
+    if (next.toString() === query) setRetry((value) => value + 1)
+    else setParams(next)
   }
   return (
     <>

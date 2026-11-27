@@ -1,0 +1,11 @@
+.demo-notice {
+  padding: 16px;
+  margin-bottom: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+.demo-notice p {
+  margin: 8px 0;
+  color: var(--muted);
+}

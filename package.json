@@ -8,7 +8,11 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "format": "prettier --write src server/src server/tests index.html"
+    "format": "prettier --write src server/src server/tests index.html",
+    "dev:demo": "vite --mode demo",
+    "build:demo": "tsc -b && vite build --mode demo",
+    "preview:demo": "vite preview --mode demo",
+    "test:demo": "node --test tests/demo.test.mjs"
   },
   "dependencies": {
     "@react-google-maps/api": "^2.20.8",

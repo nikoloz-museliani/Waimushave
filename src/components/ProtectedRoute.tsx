@@ -1,4 +1,6 @@
 import './ProtectedRoute.css'
+import { IS_DEMO } from '../config'
+import DemoNotice from './DemoNotice'
 import { usePreferences } from '../context/usePreferences'
 import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
@@ -14,6 +16,7 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 
   // Wait for /auth/me before redirecting, otherwise a reload briefly sends a
   // legitimately signed-in user to the login form.
+  if (IS_DEMO) return <DemoNotice blocked />
   if (loading) return <p>{t('Loading...')}</p>
   if (!user)
     return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />

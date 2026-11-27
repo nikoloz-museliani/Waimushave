@@ -1,6 +1,7 @@
 // Interface translations. Keys are English so it is easy to find the copy in JSX.
 // Database category values stay English; translate them only when displaying them.
 export const georgian: Record<string, string> = {
+  'Portfolio demo: accepting jobs is disabled.': 'დემო ვერსიაში სამუშაოს მიღება გამორთულია.',
   View: 'ნახვა',
   Photo: 'ფოტო',
   'Accepted jobs': 'აღებული საქმეები',

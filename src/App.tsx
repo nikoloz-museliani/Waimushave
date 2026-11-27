@@ -1,5 +1,7 @@
 import { Link, Route, Routes } from 'react-router-dom'
 import NavBar from './components/NavBar'
+import DemoNotice from './components/DemoNotice'
+import { IS_DEMO } from './config'
 import MainMenu from './components/MainMenu'
 import AuthPage from './components/AuthPage'
 import PostJob from './components/PostJob'
@@ -17,17 +19,27 @@ export default function App() {
   const { t } = usePreferences()
   return (
     <>
-      <PageMetadata />
+      {!IS_DEMO && <PageMetadata />}
       <NavBar />
-      <main id="main" className="main-content">
+      <main id="main" className="main-content" tabIndex={-1}>
+        {IS_DEMO && <DemoNotice />}
         {/* Public pages can be opened without an account and have normal URLs that
           users can share. React Router switches the screen without reloading. */}
         <Routes>
           <Route path="/" element={<MainMenu />} />
           <Route path="/jobs/:id" element={<JobDetails />} />
-          <Route path="/people/:id" element={<PublicProfile />} />
-          <Route path="/login" element={<AuthPage key="login" mode="login" />} />
-          <Route path="/signup" element={<AuthPage key="signup" mode="signup" />} />
+          <Route
+            path="/people/:id"
+            element={IS_DEMO ? <DemoNotice blocked /> : <PublicProfile />}
+          />
+          <Route
+            path="/login"
+            element={IS_DEMO ? <DemoNotice blocked /> : <AuthPage key="login" mode="login" />}
+          />
+          <Route
+            path="/signup"
+            element={IS_DEMO ? <DemoNotice blocked /> : <AuthPage key="signup" mode="signup" />}
+          />
           {/* The frontend guard is only navigation/UX. Express must independently
             verify the signed token and ownership for every private API request. */}
           <Route

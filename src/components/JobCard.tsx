@@ -1,4 +1,5 @@
 import './JobCard.css'
+import { IS_DEMO } from '../config'
 import { usePreferences } from '../context/usePreferences'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -79,23 +80,25 @@ export default function JobCard({
                 ))}
               </div>
             )}
-            <div className="contact-row">
-              {job.phone && (
-                <a className="button" href={`tel:${job.phone}`}>
-                  {t('Call poster')}
-                </a>
-              )}
-              {job.email && (
-                <a className="button" href={`mailto:${job.email}`}>
-                  {t('Email poster')}
-                </a>
-              )}
-              {!job.phone && !job.email && (
-                <Link to="/login" state={{ from: `/jobs/${job._id}` }}>
-                  {t('Log in to see contact details')}
-                </Link>
-              )}
-            </div>
+            {!IS_DEMO && (
+              <div className="contact-row">
+                {job.phone && (
+                  <a className="button" href={`tel:${job.phone}`}>
+                    {t('Call poster')}
+                  </a>
+                )}
+                {job.email && (
+                  <a className="button" href={`mailto:${job.email}`}>
+                    {t('Email poster')}
+                  </a>
+                )}
+                {!job.phone && !job.email && (
+                  <Link to="/login" state={{ from: `/jobs/${job._id}` }}>
+                    {t('Log in to see contact details')}
+                  </Link>
+                )}
+              </div>
+            )}
           </>
         )}
         <div className="person-line">

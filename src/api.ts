@@ -1,8 +1,11 @@
+import { IS_DEMO } from './config'
+
 const TOKEN_KEY = 'token'
 
-export const getToken = () => localStorage.getItem(TOKEN_KEY)
+export const getToken = () => (IS_DEMO ? null : localStorage.getItem(TOKEN_KEY))
 
 export function setToken(token: string | null) {
+  if (IS_DEMO) return // Do not read, overwrite or remove a normal-mode session.
   if (token) localStorage.setItem(TOKEN_KEY, token)
   else localStorage.removeItem(TOKEN_KEY)
 }
@@ -24,6 +27,15 @@ export class ApiError extends Error {
 // route guard or a user id in React state cannot authorize a database change.
 // Small fetch wrapper: adds the login token, handles JSON + FormData, logs what happens.
 export async function api<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
+  // Intercept before token access or fetch; demo mode never needs a backend.
+  if (IS_DEMO) {
+    const { readDemoRequest } = await import('./demoJobs')
+    try {
+      return readDemoRequest(path, options.method) as T
+    } catch (error) {
+      throw new ApiError(error instanceof Error ? error.message : 'Demo request failed.', 400)
+    }
+  }
   const method = options.method ?? 'GET'
   const url = `/api${path}`
 

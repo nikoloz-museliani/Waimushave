@@ -1,4 +1,5 @@
 import './JobDetails.css'
+import { IS_DEMO } from '../config'
 import { usePreferences } from '../context/usePreferences'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -56,7 +57,9 @@ export default function JobDetails() {
       )}
       {job ? (
         <JobCard job={job}>
-          {job.status === 'open' &&
+          {IS_DEMO && <p>{t('Portfolio demo: accepting jobs is disabled.')}</p>}
+          {!IS_DEMO &&
+            job.status === 'open' &&
             (user?._id === job.postedBy?._id ? (
               <Link className="button" to="/my-jobs">
                 {t('Manage in My jobs')}
@@ -73,7 +76,7 @@ export default function JobDetails() {
                 </button>
               </>
             ))}
-          {job.acceptedBy?._id === user?._id && (
+          {user && job.acceptedBy?._id === user._id && (
             <p role="status">
               {t('You accepted this job.')}
               <Link to="/accepted-jobs">{t('Open My jobs →')}</Link>

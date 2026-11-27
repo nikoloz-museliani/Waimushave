@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import { usePreferences } from '../context/usePreferences'
 import ToggleSwitch from './ToggleSwitch'
-import './NavBar.css'
+import './navbar.css'
 
 export default function NavBar() {
   const { user, logout } = useAuth()
@@ -10,7 +10,14 @@ export default function NavBar() {
   const navigate = useNavigate()
   return (
     <>
-      <a className="skip-link" href="#main">
+      <a
+        className="skip-link"
+        href="#main"
+        onClick={(event) => {
+          event.preventDefault()
+          document.getElementById('main')?.focus()
+        }}
+      >
         {t('Skip to content')}
       </a>
       <header className="topbar">
