@@ -186,7 +186,7 @@ export function readDemoRequest(path: string, method = 'GET'): unknown {
         job.city.toLowerCase().includes(aliases[city] ?? city) &&
         (!category || category === 'All' || job.category === category),
     )
-    const pageSize = 6
+    const pageSize = 8
     const offset = (page - 1) * pageSize
     return structuredClone({
       jobs: matches.slice(offset, offset + pageSize),
